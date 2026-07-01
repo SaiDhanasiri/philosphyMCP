@@ -1,15 +1,3 @@
-"""Stanford Encyclopedia of Philosophy (SEP) scraper tool.
-
-Fetches the main content of an SEP entry, cleans it for LLM consumption, and
-resolves human-friendly topics to SEP URL slugs (e.g. "free will" -> "freewill").
-
-SEP has no single entry for some broad topics (e.g. "mind-body problem",
-"philosophy of mind"), and its search can rank weak matches first. So when there
-is no direct entry, this tool does NOT silently present the top hit as
-authoritative: it returns the closest match clearly labeled as a fuzzy match,
-plus other candidate slugs the agent can retry with.
-"""
-
 from __future__ import annotations
 
 import re

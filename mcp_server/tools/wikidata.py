@@ -1,12 +1,3 @@
-"""Wikidata philosopher-profile tool.
-
-Resolves a philosopher's name to a Wikidata entity (via the lightweight entity
-search API), then runs a fast, QID-keyed SPARQL query for structured
-biographical and philosophical data. Querying by QID keeps us well within the
-10s timeout — matching on a lowercased label instead forces a full-dataset scan
-and times out.
-"""
-
 from __future__ import annotations
 
 import re

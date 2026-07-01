@@ -1,32 +1,9 @@
-"""CLI agent loop for the philosophy agent (Google Gemini).
-
-A drop-in alternative to agent/runner.py that drives Google Gemini instead of
-Claude. It connects to the *same* philosophy MCP server (mcp_server/server.py)
-over stdio and runs an equivalent ReAct loop: Gemini requests tool calls, the
-runner executes them against the MCP server, and feeds the results back until
-Gemini produces a final text answer.
-
-The MCP server is unchanged and model-agnostic — only the model-specific tool
-formatting and loop differ from the Claude runner.
-
-Usage:
-    python -m agent.gemini_runner "What do empiricists say about personal identity?"
-
-Requires the Gemini SDK (install the extra):
-    uv pip install -e ".[gemini]"
-
-Environment:
-    GEMINI_API_KEY (or GOOGLE_API_KEY)  - required; your Gemini API key.
-    GEMINI_MODEL                         - optional; defaults to gemini-2.5-flash.
-                                           Set gemini-2.5-pro for higher-quality
-                                           synthesis.
-"""
-
 from __future__ import annotations
 
 import asyncio
 import os
 import sys
+from pathlib import Path
 from typing import Any
 
 from mcp import ClientSession
@@ -45,6 +22,32 @@ except ImportError as exc:  # pragma: no cover - import guard
 
 DEFAULT_MODEL = "gemini-2.5-flash"
 MAX_TURNS = 12
+
+
+def _load_dotenv() -> None:
+    """Populate os.environ from a project-local .env file (dependency-free).
+
+    Walks up from this file to the project root looking for a `.env`. Existing
+    environment variables win, so an explicit `export FOO=...` in the shell is
+    never clobbered.
+    """
+    for parent in [Path(__file__).resolve().parent, *Path(__file__).resolve().parents]:
+        env_path = parent / ".env"
+        if env_path.is_file():
+            break
+    else:
+        return
+
+    for raw in env_path.read_text().splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key = key.strip()
+        if key.startswith("export "):
+            key = key[len("export "):].strip()
+        value = value.strip().strip('"').strip("'")
+        os.environ.setdefault(key, value)
 
 
 def _model() -> str:
@@ -137,6 +140,7 @@ async def _run(question: str) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
+    _load_dotenv()
     argv = sys.argv[1:] if argv is None else argv
     if not argv:
         print('Usage: python -m agent.gemini_runner "<your question>"', file=sys.stderr)

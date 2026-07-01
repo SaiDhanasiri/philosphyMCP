@@ -1,9 +1,3 @@
-"""PhilPapers search tool.
-
-Searches PhilPapers for academic papers on a philosophy topic and returns a
-small, normalized list of results.
-"""
-
 from __future__ import annotations
 
 import os
